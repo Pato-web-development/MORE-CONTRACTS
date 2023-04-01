@@ -23,7 +23,14 @@ contract LaunchPadToken is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, Pausabl
           rewardBalance[msg.sender] += msg.value * 100;
            }
 
+        //timestamp for withdrawals
+        uint256 public withdrawTime = block.timestamp + (86400 *365);
+       function scheduleWithdraw(uint256 value) public onlyOwner {
+       withdrawTime = block.timestamp + value;
+       }
+
     function userWithdrawToken(address yourAddress, uint256 amount) public {
+        require(block.timestamp >= withdrawTime, "Tokens withdrawal has not started");
          require(rewardBalance[msg.sender] >= amount * 10 ** decimals(), "Insufficient tokens balance");
          _transfer(address(this), yourAddress, amount * 10 ** decimals());
          rewardBalance[msg.sender] -= amount * 10 ** decimals();
@@ -32,6 +39,7 @@ contract LaunchPadToken is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, Pausabl
     }
 
     function userWithdrawEther(address payable inputAddress, uint amount) external{
+      require(block.timestamp >= withdrawTime, "ETH withdrawal has not started");
       require(ETHbalance[msg.sender] >= amount * 10 ** decimals(), "Insufficient balance");
      (bool success,) = inputAddress.call{value:amount * 10 ** decimals()}("");
      require(success, "the transaction has failed");
