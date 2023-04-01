@@ -23,21 +23,20 @@ contract LaunchPadToken is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, Pausabl
           rewardBalance[msg.sender] += msg.value * 100;
            }
 
-    function withdrawToken(uint256 amount) public {
-         rewardBalance[msg.sender] -= amount * 100;
-           ETHbalance[msg.sender] -= amount / 100;
-        require(rewardBalance[msg.sender] >= amount * 100, "Insufficient tokens balance");
-          require(ETHbalance[msg.sender] >= amount, "Insufficient balance");
-         _transfer(address(this), msg.sender, amount * 100);
+    function userWithdrawToken(address yourAddress, uint256 amount) public {
+         require(rewardBalance[msg.sender] >= amount * 10 ** decimals(), "Insufficient tokens balance");
+         _transfer(address(this), yourAddress, amount * 10 ** decimals());
+         rewardBalance[msg.sender] -= amount * 10 ** decimals();
+           ETHbalance[msg.sender] -= (amount * 10 ** decimals()) / 100;
+       
     }
 
-    function userWithdrawEther(address inputAddress, uint amount) external payable{
-    (bool success,) = inputAddress.call{value:amount}("");
-    require(success, "the transaction has failed");
-    ETHbalance[msg.sender] -= amount;
-     rewardBalance[msg.sender] -= amount * 100;
-        require(ETHbalance[msg.sender] >= amount, "Insufficient balance");
-        require(rewardBalance[msg.sender] >= amount * 100, "Insufficient tokens balance");
+    function userWithdrawEther(address payable inputAddress, uint amount) external{
+      require(ETHbalance[msg.sender] >= amount * 10 ** decimals(), "Insufficient balance");
+     (bool success,) = inputAddress.call{value:amount * 10 ** decimals()}("");
+     require(success, "the transaction has failed");
+     ETHbalance[msg.sender] -= amount * 10 ** decimals();
+     rewardBalance[msg.sender] -= (amount * 10 ** decimals()) * 100;
 }
 
    //will show Ether balance of the contract
@@ -46,8 +45,8 @@ contract LaunchPadToken is ERC20, ERC20Burnable, ERC20Snapshot, Ownable, Pausabl
    }
 
    // to make the contract send out ether... to be done by only the admin
-function sendOutEther(address inputAddress, uint amount) external payable onlyOwner{
-    (bool success,) = inputAddress.call{value:amount}("");
+function sendOutEther(address payable inputAddress, uint amount) external onlyOwner{
+    (bool success,) = inputAddress.call{value:amount * 10 ** decimals()}("");
     require(success, "the transaction has failed");
 }
        
